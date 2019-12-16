@@ -1,4 +1,4 @@
-package Final;
+package Final.Objects;
 
 public class Rolls {
     private int first;
@@ -7,7 +7,7 @@ public class Rolls {
     private int fourth;
     private int total;
 
-    Rolls(int first, int second, int third, int fourth, int total) {
+    public Rolls(int first, int second, int third, int fourth, int total) {
         this.first = first;
         this.second = second;
         this.third = third;

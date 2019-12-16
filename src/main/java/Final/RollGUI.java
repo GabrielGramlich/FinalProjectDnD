@@ -1,5 +1,7 @@
 package Final;
 
+import Final.Objects.Rolls;
+
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,11 +50,12 @@ public class RollGUI extends JFrame {
 
     RollGUI() {
         this.setContentPane(mainPanel);
+        setTitle("Roll Generator");
         pack();
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // Allows form to pop up in center of the screen.
-        setVisible(true);
         setSize(375, 275);
+        setVisible(true);
         generateCharacterSheetsButton.setEnabled(false);
 
         rollButton.addActionListener(event -> {
@@ -139,7 +142,7 @@ public class RollGUI extends JFrame {
             rollButton.setText("Roll #" + (rollCount + 1));
         } else {
             int totals = getTotals();
-            if (totals <= 67) {
+            if (totals <= 68) {
                 rollButton.setText("Rolls too low. Roll again.");
                 Rolls roll = new Rolls(0,0,0,0,0);
                 for (int i = 0; i < 6; i++) {

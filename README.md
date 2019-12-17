@@ -9,4 +9,4 @@ Run the attached FinalProjectDB.sql file in MySQL to created the database; then 
 Once the database is setup, it's as simple as running Main.Main() and going through Le GUI for some good ol' DnD fun.
 
 ## Known bugs (Unexpected features)
-When moving from one page to the next, and finally back to a page where some ability scores were chosen, the combo boxes autofill with rolls 2-6, allowing the user to select their highest roll each time. I have a theory of how to fix this, but only time will tell if it's done by the submission deadline.
+When moving back to a sheet where a language was selected, if that language is removed from chosen, it doesn't appear back in known languages, but only then.

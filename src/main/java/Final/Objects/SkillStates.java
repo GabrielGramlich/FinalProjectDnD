@@ -24,13 +24,15 @@ public class SkillStates {
     private State stealth = State.CLOSED;
     private State survival = State.CLOSED;
     private int any = 0;
+    private int choices;
     private SkillSelections skillSelections;
 
-    public SkillStates(List<Boolean> backgroundChoices, List<String> backgroundProficiencies, List<Boolean> classChoices, List<String> classProficiencies, List<Boolean>raceChoices, List<String> raceProficiencies) {
+    public SkillStates(List<Boolean> backgroundChoices, List<String> backgroundProficiencies, List<Boolean> classChoices, List<String> classProficiencies, List<Boolean>raceChoices, List<String> raceProficiencies, int choices) {
         skillSelections = new SkillSelections();
         setStates(classChoices, classProficiencies);
         setStates(backgroundChoices, backgroundProficiencies);
         setStates(raceChoices, raceProficiencies);
+        this.choices = choices;
     }
 
     private void setStates(List<Boolean> choices, List<String> proficiencies) {
@@ -238,6 +240,7 @@ public class SkillStates {
     public State getStealth() { return stealth; }
     public State getSurvival() { return survival; }
     public int getAny() { return any; }
+    public int getChoices() { return choices; }
     public SkillSelections getSkillSelections() { return skillSelections; }
 
     public void setAcrobatics(State acrobatics) { this.acrobatics = acrobatics; }
@@ -259,5 +262,6 @@ public class SkillStates {
     public void setStealth(State stealth) { this.stealth = stealth; }
     public void setSurvival(State survival) { this.survival = survival; }
     public void setAny(int any) { this.any = any; }
+    public void setChoices(int choices) { this.choices = choices; }
     public void setSkillSelections(SkillSelections skillSelections) { this.skillSelections = skillSelections; }
 }

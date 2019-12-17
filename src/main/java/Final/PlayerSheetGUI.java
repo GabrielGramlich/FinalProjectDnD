@@ -8,11 +8,9 @@ import java.util.*;
 
 import static Final.Import.getCharacterData;
 
-// TODO fix proficiencies
-// TODO skills left drop when selected
-// TODO choose languages
-// TODO languages left drop when selected
-// TODO figure out cause of extra choices -- blank out before moving
+// TODO skills unselectedable when remaining == 0
+
+// TODO when going back to sheet to remove chosen language, figure out why it isn't showing up
 // TODO comment code
 // TODO organize it
 // TODO maybe correct unarmored defense
@@ -97,14 +95,19 @@ public class PlayerSheetGUI extends JFrame {
 
     private List<String> rolls;
     private List<Integer> oldRolls;
-    private List<String> knownLanguages = new ArrayList<>();
+    private List<String> knownLanguages;
+    private List<String> chosenLanguages;
+    private List<String> allLanguages;
+
     private int currentSheet = 0;
     private int abilityIndex;
+    private int selectedSkills = 0;
     private boolean listenGo = true;
     private boolean passGo = true;
 
     private final int PROFICIENCY_MODIFIER = 2;
     private final String UNSELECT = "Unselect";
+    private final String REMOVE = "Remove option above";
     private final int NEGATIVE = -1;
 
     private List<Sheet> sheets = new ArrayList<>();
@@ -174,7 +177,7 @@ public class PlayerSheetGUI extends JFrame {
         propagateCharacterData();
         propagateFeatData();
         propagateGearData();
-        changeLanguageButton();
+        propagateLanguageData();
         propagateSaveData();
         propagateSkillData();
         propagateTools();
@@ -276,11 +279,11 @@ public class PlayerSheetGUI extends JFrame {
         int baseModifier = PROFICIENCY_MODIFIER;
 
         for (int i = 0; i < names.size(); i++) {
-            String weapon = names.get(i) + ", To Hit: ";
-            int strengthScore = Integer.parseInt(getAbilityScoreModifier(modifiers.getStrengthScore()));
-            int dexScore = Integer.parseInt(getAbilityScoreModifier(modifiers.getDexterityScore()));
-            int strengthMod = strengthScore + modifiers.getStrengthRaceModifier();
-            int dexMod = dexScore + modifiers.getDexterityRaceModifier();
+            String weapon = names.get(i) + ", To Hit: +";
+            int strengthScore = modifiers.getStrengthScore() + modifiers.getStrengthRaceModifier();
+            int strengthMod = Integer.parseInt(getAbilityScoreModifier(strengthScore));
+            int dexScore = modifiers.getDexterityScore() + modifiers.getDexterityRaceModifier();
+            int dexMod = Integer.parseInt(getAbilityScoreModifier(dexScore));
             String plusOrMinusStrength = plusOrMinus(strengthMod);
             String plusOrMinusDex = plusOrMinus(dexMod);
 
@@ -323,51 +326,79 @@ public class PlayerSheetGUI extends JFrame {
         return plusOrMinus;
     }
 
-    private void changeLanguageButton() {
-        if (languages.getLanguagesLeft() == 0) {
-            languagesLeftComboBox.removeAllItems();
-            chooseLanguageButton.setEnabled(false);
-            languagesLeftComboBox.setEnabled(false);
-            propagateLanguageData(false);
-        } else {
-            languagesLeftComboBox.removeAllItems();
-            chooseLanguageButton.setEnabled(true);
-            languagesLeftComboBox.setEnabled(true);
-            propagateLanguageData(true);
-        }
-    }
+    private void propagateLanguageData() {
+        knownLanguages = new ArrayList<>();
+        chosenLanguages = new ArrayList<>();
+        allLanguages = new ArrayList<>();
 
-    private void propagateLanguageData(boolean go) {
         languagesLeftLabel.setText("Languages Left: " + languages.getLanguagesLeft());
 
-        knownLanguages = new ArrayList<>();
-        List<String> allLanguages = languages.getAllLanguages();
+        allLanguages = languages.getAllLanguages();
+        if (languages.getChosenLanguages() != null && !languages.getChosenLanguages().isEmpty()) {
+            chosenLanguages = languages.getChosenLanguages();
+        }
+        addLanguagesKnown(languages.getBackgroundLanguages());
+        addLanguagesKnown(languages.getRaceLanguages());
 
-        addLanguages(languages.getBackgroundLanguages());
-        addLanguages(languages.getRaceLanguages());
-        addLanguages(languages.getChosenLanguages());
+        List<String> tempLanguages = new ArrayList<>();
+        if (chosenLanguages != null && !chosenLanguages.isEmpty()) {
+            for (String language : chosenLanguages) {
+                tempLanguages.add(language);
+                tempLanguages.add(REMOVE);
+            }
+        }
+        addLanguagesKnown(tempLanguages);
 
         for (String language : knownLanguages) {
             languagesKnownComboBox.addItem(language);
             allLanguages.remove(language);
         }
 
-        if (go) {
-            for (String language : allLanguages) {
-                if (!language.equals("Any")) {
+        updateLanguageButton();
+    }
+
+    private void addLanguagesKnown(List<String> languages) {
+        if (languages != null) {
+            for (String language : languages) {
+                if (language.equals(REMOVE)) {
+                    knownLanguages.add(language);
+                } else if (!knownLanguages.contains(language) && !language.equals("Any")) {
+                    knownLanguages.add(language);
+                }
+            }
+        }
+    }
+
+    private void updateLanguageButton() {
+        if (languages.getLanguagesLeft() == 0) {
+            languagesLeftComboBox.removeAllItems();
+            languagesLeftComboBox.setEnabled(false);
+            chooseLanguageButton.setEnabled(false);
+        } else {
+            languagesLeftComboBox.removeAllItems();
+            languagesLeftComboBox.setEnabled(true);
+            chooseLanguageButton.setEnabled(true);
+            addLanguagesLeft();
+        }
+    }
+
+    private void addLanguagesLeft() {
+        for (String language : allLanguages) {
+            if (!language.equals("Any")) {
+                if (validChosen(language)){
                     languagesLeftComboBox.addItem(language);
                 }
             }
         }
     }
 
-    private void addLanguages(List<String> languages) {
-        if (languages != null) {
-            for (String language : languages) {
-                if (!knownLanguages.contains(language) && !language.equals("Any")) {
-                    knownLanguages.add(language);
-                }
-            }
+    private boolean validChosen(String language) {
+        if (chosenLanguages == null) {
+            return true;
+        } else if (!chosenLanguages.contains(language)) {
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -543,27 +574,27 @@ public class PlayerSheetGUI extends JFrame {
         saveCheckBoxActionListeners(4, wisdomSaveCheckBox);
         saveCheckBoxActionListeners(5, charismaSaveCheckBox);
 
-        skillCheckBoxActionListeners(athleticsStrCheckBox, strengthModifierLabel, athleticsLabel);
-        skillCheckBoxActionListeners(acrobaticsDexCheckBox, dexterityModifierLabel, acrobaticsLabel);
-        skillCheckBoxActionListeners(sleightOfHandDexCheckBox, dexterityModifierLabel, sleightOfHandLabel);
-        skillCheckBoxActionListeners(stealthDexCheckBox, dexterityModifierLabel, stealthLabel);
-        skillCheckBoxActionListeners(arcanaIntCheckBox, intelligenceModifierLabel, arcanaLabel);
-        skillCheckBoxActionListeners(historyIntCheckBox, intelligenceModifierLabel, historyLabel);
-        skillCheckBoxActionListeners(investigationIntCheckBox, intelligenceModifierLabel, investigationLabel);
-        skillCheckBoxActionListeners(natureIntCheckBox, intelligenceModifierLabel, natureLabel);
-        skillCheckBoxActionListeners(religionIntCheckBox, intelligenceModifierLabel, religionLabel);
-        skillCheckBoxActionListeners(animalHandlingWisCheckBox, wisdomModifierLabel, animalHandlingLabel);
-        skillCheckBoxActionListeners(insightWisCheckBox, wisdomModifierLabel, insightLabel);
-        skillCheckBoxActionListeners(medicineWisCheckBox, wisdomModifierLabel, medicineLabel);
-        skillCheckBoxActionListeners(perceptionWisCheckBox, wisdomModifierLabel, perceptionLabel);
-        skillCheckBoxActionListeners(survivalWisCheckBox, wisdomModifierLabel, survivalLabel);
-        skillCheckBoxActionListeners(deceptionChaCheckBox, charismaModifierLabel, deceptionLabel);
-        skillCheckBoxActionListeners(intimidationChaCheckBox, charismaModifierLabel, intimidationLabel);
-        skillCheckBoxActionListeners(performanceChaCheckBox, charismaModifierLabel, performanceLabel);
-        skillCheckBoxActionListeners(persuasionChaCheckBox, charismaModifierLabel, persuasionLabel);
+        skillCheckBoxActionListeners(0, athleticsStrCheckBox, athleticsLabel);
+        skillCheckBoxActionListeners(1, acrobaticsDexCheckBox, acrobaticsLabel);
+        skillCheckBoxActionListeners(1, sleightOfHandDexCheckBox, sleightOfHandLabel);
+        skillCheckBoxActionListeners(1, stealthDexCheckBox, stealthLabel);
+        skillCheckBoxActionListeners(3, arcanaIntCheckBox, arcanaLabel);
+        skillCheckBoxActionListeners(3, historyIntCheckBox, historyLabel);
+        skillCheckBoxActionListeners(3, investigationIntCheckBox, investigationLabel);
+        skillCheckBoxActionListeners(3, natureIntCheckBox, natureLabel);
+        skillCheckBoxActionListeners(3, religionIntCheckBox, religionLabel);
+        skillCheckBoxActionListeners(4, animalHandlingWisCheckBox, animalHandlingLabel);
+        skillCheckBoxActionListeners(4, insightWisCheckBox, insightLabel);
+        skillCheckBoxActionListeners(4, medicineWisCheckBox, medicineLabel);
+        skillCheckBoxActionListeners(4, survivalWisCheckBox, survivalLabel);
+        skillCheckBoxActionListeners(5, deceptionChaCheckBox, deceptionLabel);
+        skillCheckBoxActionListeners(5, intimidationChaCheckBox, intimidationLabel);
+        skillCheckBoxActionListeners(5, performanceChaCheckBox, performanceLabel);
+        skillCheckBoxActionListeners(5, persuasionChaCheckBox, persuasionLabel);
 
         perceptionWisCheckBox.addActionListener(event -> {
-            skillCheckBoxAction(wisdomModifierLabel, perceptionWisCheckBox, perceptionLabel);
+            abilityIndex = 4;
+            skillCheckBoxAction(perceptionWisCheckBox, perceptionLabel);
             updatePassive();
         });
 
@@ -585,6 +616,32 @@ public class PlayerSheetGUI extends JFrame {
             }
 
             setSheet();
+        });
+
+        chooseLanguageButton.addActionListener(event -> {
+            String choice = languagesLeftComboBox.getItemAt(languagesLeftComboBox.getSelectedIndex());
+            languagesKnownComboBox.addItem(choice);
+            languagesKnownComboBox.addItem(REMOVE);
+            chosenLanguages.add(choice);
+            languagesLeftComboBox.removeItem(choice);
+            languages.setLanguagesLeft(languages.getLanguagesLeft() - 1);
+            languagesLeftLabel.setText("Languages Left: " + languages.getLanguagesLeft());
+            updateLanguageButton();
+        });
+
+        languagesKnownComboBox.addActionListener(event -> {
+            if (languagesKnownComboBox.getSelectedIndex() != -1) {
+                if (languagesKnownComboBox.getItemAt(languagesKnownComboBox.getSelectedIndex()).equals(REMOVE)) {
+                    int index = languagesKnownComboBox.getSelectedIndex();
+                    String choice = languagesKnownComboBox.getItemAt(index - 1);
+                    chosenLanguages.remove(choice);
+                    languagesKnownComboBox.removeItemAt(index);
+                    languagesKnownComboBox.removeItem(choice);
+                    languages.setLanguagesLeft(languages.getLanguagesLeft() + 1);
+                    languagesLeftLabel.setText("Languages Left: " + languages.getLanguagesLeft());
+                    updateLanguageButton();
+                }
+            }
         });
     }
 
@@ -746,7 +803,6 @@ public class PlayerSheetGUI extends JFrame {
 
     private void updatePassive() {
         int wisScore = modifiers.getWisdomScore() + modifiers.getWisdomRaceModifier();
-        System.out.println(wisScore);
         int wisMod = Integer.parseInt(getAbilityScoreModifier(wisScore));
         if (perceptionWisCheckBox.isSelected()) {
             wisMod += PROFICIENCY_MODIFIER;
@@ -932,35 +988,82 @@ public class PlayerSheetGUI extends JFrame {
         }
     }
 
-    private void skillCheckBoxActionListeners(JCheckBox checkBox, JLabel modifierLabel, JLabel skillLabel) {
+    private void skillCheckBoxActionListeners(int modifierIndex, JCheckBox checkBox, JLabel skillLabel) {
         checkBox.addActionListener(event -> {
-            skillCheckBoxAction(modifierLabel, checkBox, skillLabel);
+            abilityIndex = modifierIndex;
+            skillCheckBoxAction(checkBox, skillLabel);
         });
     }
 
-    private void skillCheckBoxAction(JLabel modifierLabel, JCheckBox checkBox, JLabel label) {
+    private void skillCheckBoxAction(JCheckBox checkBox, JLabel label) {
         if (passGo) {
-            String modifier = modifierLabel.getText();
-            if (modifier.equals("0")) {
-                int mod = 0;
-                setLabel(mod, checkBox, label);
-            } else {
-                String addSub = modifier.substring(0, 1);
-                int mod = Integer.parseInt(modifier.substring(1));
-                if (addSub.equals("-")) {
-                    setLabel(-mod, checkBox, label);
-                } else {
-                    setLabel(mod, checkBox, label);
-                }
+            int modifier = 0;
+            switch(abilityIndex) {
+                case 0:
+                    modifier = modifiers.getStrengthScore() + modifiers.getStrengthRaceModifier();
+                    break;
+                case 1:
+                    modifier = modifiers.getDexterityScore() + modifiers.getDexterityRaceModifier();
+                    break;
+                case 2:
+                    modifier = modifiers.getConstitutionScore() + modifiers.getConstitutionRaceModifier();
+                    break;
+                case 3:
+                    modifier = modifiers.getIntelligenceScore() + modifiers.getIntelligenceRaceModifier();
+                    break;
+                case 4:
+                    modifier = modifiers.getWisdomScore() + modifiers.getWisdomRaceModifier();
+                    break;
+                case 5:
+                    modifier = modifiers.getCharismaScore() + modifiers.getCharismaRaceModifier();
+                    break;
             }
+            int abilityScoreModifier = Integer.parseInt(getAbilityScoreModifier(modifier));
+
+            if (checkBox.isSelected()) {
+                abilityScoreModifier += PROFICIENCY_MODIFIER;
+                setLabel(abilityScoreModifier, label);
+            } else {
+                setLabel(abilityScoreModifier, label);
+            }
+            getSkillsSelected();
+            proficienciesLeftLabel.setText("Proficiencies Left: " + (skillStates.getChoices() - selectedSkills));
         }
     }
 
-    private void setLabel(int mod, JCheckBox checkBox, JLabel label) {
-        if (checkBox.isSelected()) {
-            label.setText(String.valueOf(mod + PROFICIENCY_MODIFIER));
+    private void setLabel(int mod, JLabel label) {
+        if (mod > 0) {
+            label.setText("+" + mod);
         } else {
             label.setText(String.valueOf(mod));
+        }
+    }
+
+    private void getSkillsSelected() {
+        selectedSkills = 0;
+        skillSelected(acrobaticsDexCheckBox);
+        skillSelected(animalHandlingWisCheckBox);
+        skillSelected(arcanaIntCheckBox);
+        skillSelected(athleticsStrCheckBox);
+        skillSelected(deceptionChaCheckBox);
+        skillSelected(historyIntCheckBox);
+        skillSelected(insightWisCheckBox);
+        skillSelected(intimidationChaCheckBox);
+        skillSelected(investigationIntCheckBox);
+        skillSelected(medicineWisCheckBox);
+        skillSelected(natureIntCheckBox);
+        skillSelected(perceptionWisCheckBox);
+        skillSelected(performanceChaCheckBox);
+        skillSelected(persuasionChaCheckBox);
+        skillSelected(religionIntCheckBox);
+        skillSelected(sleightOfHandDexCheckBox);
+        skillSelected(stealthDexCheckBox);
+        skillSelected(survivalWisCheckBox);
+    }
+
+    private void skillSelected(JCheckBox checkBox) {
+        if (checkBox.isEnabled() && checkBox.isSelected()) {
+            selectedSkills++;
         }
     }
 
@@ -974,22 +1077,13 @@ public class PlayerSheetGUI extends JFrame {
     }
 
     private void saveSheet() {
-        saveModifiers();
         saveSkills();
 
+        languages.setChosenLanguages(chosenLanguages);
         sheet.setLanguages(languages);
         sheet.setModifiers(modifiers);
         skillStates.setSkillSelections(skillSelections);
         sheet.setSkillStates(skillStates);
-    }
-
-    private void saveModifiers() {
-        modifiers.setStrengthIndex(strengthComboBox.getSelectedIndex());
-        modifiers.setDexterityIndex(dexterityComboBox.getSelectedIndex());
-        modifiers.setConstitutionIndex(constitutionComboBox.getSelectedIndex());
-        modifiers.setIntelligenceIndex(intelligenceComboBox.getSelectedIndex());
-        modifiers.setWisdomIndex(wisdomComboBox.getSelectedIndex());
-        modifiers.setCharismaIndex(charismaComboBox.getSelectedIndex());
     }
 
     private void saveSkills() {
@@ -1069,47 +1163,12 @@ public class PlayerSheetGUI extends JFrame {
         performanceChaCheckBox.setSelected(false);
         persuasionChaCheckBox.setSelected(false);
 
-        athleticsLabel.setText("0");
-        acrobaticsLabel.setText("0");
-        sleightOfHandLabel.setText("0");
-        stealthLabel.setText("0");
-        arcanaLabel.setText("0");
-        historyLabel.setText("0");
-        investigationLabel.setText("0");
-        natureLabel.setText("0");
-        religionLabel.setText("0");
-        animalHandlingLabel.setText("0");
-        insightLabel.setText("0");
-        medicineLabel.setText("0");
-        perceptionLabel.setText("0");
-        survivalLabel.setText("0");
-        deceptionLabel.setText("0");
-        intimidationLabel.setText("0");
-        performanceLabel.setText("0");
-        persuasionLabel.setText("0");
-
-        passivePerceptionLabel.setText("0");
-
         strengthSaveCheckBox.setSelected(false);
         dexteritySaveCheckBox.setSelected(false);
         constitutionSaveCheckBox.setSelected(false);
         intelligenceSaveCheckBox.setSelected(false);
         wisdomSaveCheckBox.setSelected(false);
         charismaSaveCheckBox.setSelected(false);
-
-        strengthSaveCheckBox.setText("0");
-        dexteritySaveCheckBox.setText("0");
-        constitutionSaveCheckBox.setText("0");
-        intelligenceSaveCheckBox.setText("0");
-        wisdomSaveCheckBox.setText("0");
-        charismaSaveCheckBox.setText("0");
-
-        strengthModifierLabel.setText("0");
-        dexterityModifierLabel.setText("0");
-        constitutionModifierLabel.setText("0");
-        intelligenceModifierLabel.setText("0");
-        wisdomModifierLabel.setText("0");
-        charismaModifierLabel.setText("0");
 
         strengthComboBox.removeAllItems();
         dexterityComboBox.removeAllItems();
@@ -1118,21 +1177,13 @@ public class PlayerSheetGUI extends JFrame {
         wisdomComboBox.removeAllItems();
         charismaComboBox.removeAllItems();
 
-        raceLabel.setText("None");
-        classLabel.setText("None");
-        backgroundLabel.setText("None");
-        maxHitPointsLabel.setText("0");
-        armorClassLabel.setText("0");
         initiativeLabel.setText("0");
-        proficienciesLeftLabel.setText("Proficiencies Left: 0");
 
         languagesKnownComboBox.removeAllItems();
         languagesLeftComboBox.removeAllItems();
         toolsKnownComboBox.removeAllItems();
         weaponsComboBox.removeAllItems();
         armorComboBox.removeAllItems();
-
-        featuresTextArea.setText("This is where Racial, Class and Background feats will go.");
     }
 
     private void updateSheet() {
@@ -1144,5 +1195,6 @@ public class PlayerSheetGUI extends JFrame {
         listenGo = false;
         propagateRolls();
         listenGo = true;
+        updateLanguageButton();
     }
 }

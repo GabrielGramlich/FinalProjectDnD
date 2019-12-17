@@ -88,8 +88,9 @@ public class Import {
         List<String> classProficiencies = getStringArray("SELECT Name, Choice FROM ProficiencyBridge INNER JOIN Proficiencies ON ProficiencyBridge.ProficiencyID = Proficiencies.ProficiencyID WHERE ClassID = " + iClass + " AND Type = \"Skill\"", "Name");
         List<Boolean> raceChoices = getBoolArray("SELECT Name, Choice FROM ProficiencyBridge INNER JOIN Proficiencies ON ProficiencyBridge.ProficiencyID = Proficiencies.ProficiencyID WHERE RaceID = " + iRace + " AND Type = \"Skill\"", "Choice");
         List<String> raceProficiencies = getStringArray("SELECT Name, Choice FROM ProficiencyBridge INNER JOIN Proficiencies ON ProficiencyBridge.ProficiencyID = Proficiencies.ProficiencyID WHERE RaceID = " + iRace + " AND Type = \"Skill\"", "Name");
+        List<Integer> classSkills = getIntArray("SELECT Skills FROM Classes WHERE ClassID = " + iClass, "Skills");
 
-        return new SkillStates(backgroundChoices, backgroundProficiencies, classChoices, classProficiencies, raceChoices, raceProficiencies);
+        return new SkillStates(backgroundChoices, backgroundProficiencies, classChoices, classProficiencies, raceChoices, raceProficiencies, classSkills.get(0));
     }
 
     private static Modifiers getModifiers() {

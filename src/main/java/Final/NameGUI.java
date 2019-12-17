@@ -4,6 +4,10 @@ import Final.Objects.Sheet;
 
 import javax.swing.*;
 
+/**************************************************************************
+ * This class gets the user's name, validates it, then sends it to export *
+ **************************************************************************/
+
 public class NameGUI extends JFrame {
     private JTextField nameTextField;
     private JPanel mainPanel;
@@ -63,6 +67,4 @@ public class NameGUI extends JFrame {
 
         return bad;
     }
-
-
 }

@@ -9,7 +9,7 @@ Run the attached FinalProjectDB.sql file in MySQL to created the database; then 
 Once the database is setup, it's as simple as running Main.Main() and going through Le GUI for some good ol' DnD fun.
 
 ## Known bugs (Unexpected features)
-When moving back to a sheet where a language was selected, if that language is removed from chosen, it doesn't appear back in known languages, but only then.
+None right now. Tell me if you find some.
 
 ## Further fun
 This project is by no means complete. Though almost everything in it functions as intending, there are definite aspect that have been intentionally omitted for the sake of timely completion. With 17 minutes til the deadline, that's definitely still including a decent amount.

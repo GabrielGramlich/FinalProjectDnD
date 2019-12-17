@@ -13,6 +13,12 @@ import static Final.Import.getCharacterData;
 // TODO comment code
 // TODO organize it
 
+/******************************************************************************
+ * This class does a lot. For the sake of brevity, I'll say it deals with *****
+ * the GUI components related to the player sheet; but other comments like ****
+ * these explain it in better detail as it relates to their following methods *
+ ******************************************************************************/
+
 public class PlayerSheetGUI extends JFrame {
     private JPanel mainPanel;
     private JComboBox<String> strengthComboBox;
@@ -133,7 +139,7 @@ public class PlayerSheetGUI extends JFrame {
         FINAL,
         OPEN,
         CLOSED
-    };
+    }
 
     PlayerSheetGUI(List<Integer> oldRolls) {
         rolls = new ArrayList<>();
@@ -148,6 +154,7 @@ public class PlayerSheetGUI extends JFrame {
         setVisible(true);
         lastButton.setEnabled(false);
 
+        // The following method calls enact the bigger picture of the class.
         createSkillList();
         getNewCharacter();
         getNewCharacterData();
@@ -158,6 +165,9 @@ public class PlayerSheetGUI extends JFrame {
     }
 
     private void createSkillList() {
+        // There are a lot of check boxes in this. Some would say too many. While most of the time there are other
+        //  method call attached to them, there are a few instances where all that needed is the skill checkboxes,
+        //  so I threw them into a list to simply those times.
         skillCheckBoxes = new ArrayList<>();
         skillCheckBoxes.add(acrobaticsDexCheckBox);
         skillCheckBoxes.add(animalHandlingWisCheckBox);
@@ -183,6 +193,8 @@ public class PlayerSheetGUI extends JFrame {
      * The following adds data from database to the sheet. *
      *******************************************************/
 
+    // This method grabs random integers with upperbounds representing the total of races, classes and backgrounds
+    //  available, and grabs a character sheet from the database with the associated data.
     private void getNewCharacter() {
         Random rnd = new Random();
         int TOTAL_RACES = 5;
@@ -195,6 +207,7 @@ public class PlayerSheetGUI extends JFrame {
         sheets.add(getCharacterData(raceSelection, classSelection, backgroundSelection));
     }
 
+    // This class takes that sheet and grabs the objects from it with data about the character build.
     private void getNewCharacterData() {
         sheet = sheets.get(currentSheet);
         character = sheet.getCharacter();
@@ -208,6 +221,7 @@ public class PlayerSheetGUI extends JFrame {
         tools = sheet.getTools();
     }
 
+    // This is another simple method calling other methods to do lots of fun.
     private void propagateSheetData() {
         propagateCharacterData();
         propagateFeatData();
@@ -218,6 +232,7 @@ public class PlayerSheetGUI extends JFrame {
         propagateTools();
     }
 
+    // Here we're just adding some of the more basic data to the gui.
     private void propagateCharacterData() {
         raceLabel.setText(character.getRaceName());
         classLabel.setText(character.getClassName());
@@ -226,6 +241,7 @@ public class PlayerSheetGUI extends JFrame {
         proficienciesLeftLabel.setText("Proficiencies Left: " + character.getSkillCount());
     }
 
+    // Hit points at first level are fixed, but with a buff from the constitution modifier. This just adds that.
     private void propagateHitPoints() {
         int conAbilityScore = modifiers.getConstitutionScore() + modifiers.getConstitutionRaceModifier();
         int conAbilityMod = Integer.parseInt(getAbilityScoreModifier(conAbilityScore));
@@ -233,6 +249,8 @@ public class PlayerSheetGUI extends JFrame {
         maxHitPointsLabel.setText(String.valueOf(hitPoints));
     }
 
+    // This grabs all the feats from the race, class and background, and sends them to a method to build a string
+    //  that includes all of them, then adds it to the text area.
     private void propagateFeatData() {
         String featString = "";
         List<String> raceFeatNames = feats.getRaceFeatNames();
@@ -249,18 +267,24 @@ public class PlayerSheetGUI extends JFrame {
         featuresTextArea.setText(featString);
     }
 
+    // This is basically just formatting. It takes it feature sent to it, puts the name first, then the description,
+    //  then adds than to a running string to be displayed to the user.
     private String addToFeatString(List<String> featNames, String title, List<String> featDescriptions, String featString) {
         if (featNames.size() > 0) {
             featString += title + "\n";
+            StringBuilder featStringBuilder = new StringBuilder(featString);
             for (int i = 0; i < featNames.size(); i++) {
-                featString += featNames.get(i) + " - " + featDescriptions.get(i) + "\n";
+                featStringBuilder.append(featNames.get(i)).append(" - ").append(featDescriptions.get(i)).append("\n");
             }
+            featString = featStringBuilder.toString();
             featString += "\n";
         }
 
         return featString;
     }
 
+    // This is another method that grabs data, and sends it to the next method for processing. Not exciting, but makes
+    //  the code more manageable. Don't judge me.
     private void propagateGearData() {
         List<String> armorNames = gear.getArmorNames();
         List<Integer> armorBases = gear.getArmorBases();
@@ -273,6 +297,8 @@ public class PlayerSheetGUI extends JFrame {
         updateWeapons(weaponNames, weaponDamages, weaponModifiers);
     }
 
+    // This basically adds all armor available for the character to the combo box if there is armor, and blanks the
+    //  combo box out if there's not.
     private void updateArmor(List<String> names) {
         armorComboBox.setEnabled(true);
         armorComboBox.removeAllItems();
@@ -286,38 +312,50 @@ public class PlayerSheetGUI extends JFrame {
         }
     }
 
+    // Okay, this method is a little more fun. It updates the armor class, which is basically how hard it is to hit
+    //  the character, but there's more to calculate so let me explain further...
     private void updateArmorClass(List<Integer> bases, List<String> types) {
+        // All AC's deal with dex, so it grabs that modifier.
         int base = 0;
         int dexScore = modifiers.getDexterityScore() + modifiers.getDexterityRaceModifier();
         int dexMod = Integer.parseInt(getAbilityScoreModifier(dexScore));
 
+        // Then monks and barbarians have a unique AC if they're unarmored, so the next two statements deal with that.
         if (character.getClassName().equals("Barbarian")) {
+            // A Barbarian's unarmored defense come from constitution, so it gets the con modifier, adds it to the dex
+            //  mod plus 10, and there's the AC.
             int conScore = modifiers.getConstitutionScore() + modifiers.getConstitutionRaceModifier();
             int conMod = Integer.parseInt(getAbilityScoreModifier(conScore));
             base = 10 + dexMod + conMod;
 
             armorClassLabel.setText(String.valueOf(base));
         } else if (character.getClassName().equals("Monk")) {
+            // A Monk is the same as a Barbarian, but with Wisdom instead of con.
             int wisScore = modifiers.getWisdomScore() + modifiers.getWisdomRaceModifier();
             int wisMod = Integer.parseInt(getAbilityScoreModifier(wisScore));
             base = 10 + dexMod + wisMod;
 
             armorClassLabel.setText(String.valueOf(base));
         } else {
+            // If the character is one of the other 10 classes, it's a bit different. There's no set AC, it depends on
+            //  the armor.
             for (int i = 0; i < bases.size(); i++) {
                 String type = types.get(i);
 
                 switch (type) {
                     case "Light":
+                        // If the armor is light, it's the armor's AC plus dex.
                         base += bases.get(i);
                         base += dexMod;
                         break;
                     case "Medium":
+                        // If the armor is medium, it's the armor's AC plus dex to a max of 2.
                         base += bases.get(i);
                         base += Math.min(dexMod, 2);
                         break;
                     case "Heavy":
                     case "Shield":
+                        // If it's heavy armor or a shield, dex doesn't matter, it's just that piece's AC.
                         base += bases.get(i);
                         break;
                 }
@@ -329,10 +367,12 @@ public class PlayerSheetGUI extends JFrame {
 
     private void updateWeapons(List<String> names, List<String> damages, List<Integer> weaponModifiers) {
         List<String> weapons = new ArrayList<>();
-        int baseModifier = PROFICIENCY_MODIFIER;
+        int baseModifier = PROFICIENCY_MODIFIER;    // Because this program is basic, the database only includes weapons
+                                                    //  the user is proficient with.
 
         for (int i = 0; i < names.size(); i++) {
             String weapon = names.get(i) + ", To Hit: +";
+            // Some weapons deal with strength, some with dexterity, some with either, so we grab both modifiers.
             int strengthScore = modifiers.getStrengthScore() + modifiers.getStrengthRaceModifier();
             int strengthMod = Integer.parseInt(getAbilityScoreModifier(strengthScore));
             int dexScore = modifiers.getDexterityScore() + modifiers.getDexterityRaceModifier();
@@ -370,22 +410,27 @@ public class PlayerSheetGUI extends JFrame {
     }
 
     private String plusOrMinus(int mod) {
-        String plusOrMinus = "";
-        if (mod >= 0) {
+        // Adding the appropriate sign to the modifier for the user.
+        String plusOrMinus;
+        if (mod > 0) {
             plusOrMinus = " + ";
         } else if (mod < 0) {
             plusOrMinus = " - ";
+        } else {
+            plusOrMinus = " ";
         }
         return plusOrMinus;
     }
 
     private void propagateLanguageData() {
+        // Initiating each List.
         knownLanguages = new ArrayList<>();
         chosenLanguages = new ArrayList<>();
         allLanguages = new ArrayList<>();
 
         languagesLeftLabel.setText("Languages Left: " + languages.getLanguagesLeft());
 
+        // Adding chosen languages to the list if they exist.
         allLanguages = languages.getAllLanguages();
         if (languages.getChosenLanguages() != null && !languages.getChosenLanguages().isEmpty()) {
             chosenLanguages = languages.getChosenLanguages();
@@ -393,6 +438,7 @@ public class PlayerSheetGUI extends JFrame {
         addLanguagesKnown(languages.getBackgroundLanguages());
         addLanguagesKnown(languages.getRaceLanguages());
 
+        // Adding chosen languages to the list of known languages if they were previously selected.
         List<String> tempLanguages = new ArrayList<>();
         if (chosenLanguages != null && !chosenLanguages.isEmpty()) {
             for (String language : chosenLanguages) {
@@ -402,15 +448,16 @@ public class PlayerSheetGUI extends JFrame {
         }
         addLanguagesKnown(tempLanguages);
 
+        // Adding every known to the appropriate list.
         for (String language : knownLanguages) {
             languagesKnownComboBox.addItem(language);
-            allLanguages.remove(language);
         }
 
         updateLanguageButton();
     }
 
     private void addLanguagesKnown(List<String> languages) {
+        // Adding languages known to the list and the ability to remove them.
         if (languages != null) {
             for (String language : languages) {
                 if (language.equals(REMOVE)) {
@@ -423,6 +470,7 @@ public class PlayerSheetGUI extends JFrame {
     }
 
     private void updateLanguageButton() {
+        // Changing the buttons if languages to selects changes.
         if (languages.getLanguagesLeft() == 0) {
             languagesLeftComboBox.removeAllItems();
             languagesLeftComboBox.setEnabled(false);
@@ -448,11 +496,7 @@ public class PlayerSheetGUI extends JFrame {
     private boolean validChosen(String language) {
         if (chosenLanguages == null) {
             return true;
-        } else if (!chosenLanguages.contains(language)) {
-            return true;
-        } else {
-            return false;
-        }
+        } else return !chosenLanguages.contains(language);
     }
 
     private void propagateSaveData() {

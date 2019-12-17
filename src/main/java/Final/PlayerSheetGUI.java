@@ -9,11 +9,9 @@ import java.util.*;
 import static Final.Import.getCharacterData;
 
 // TODO skills unselectedable when remaining == 0
-
-// TODO when going back to sheet to remove chosen language, figure out why it isn't showing up
+// TODO when going back to sheet to remove chosen language, figure out why it isn't showing up in all languages
 // TODO comment code
 // TODO organize it
-// TODO maybe correct unarmored defense
 
 public class PlayerSheetGUI extends JFrame {
     private JPanel mainPanel;
@@ -90,7 +88,7 @@ public class PlayerSheetGUI extends JFrame {
     private JLabel wisdomModifierLabel;
     private JLabel charismaModifierLabel;
     private JLabel languagesLeftLabel;
-    private JButton chooseCharacterAndExportButton;
+    private JButton exportButton;
     private JTextArea featuresTextArea;
 
     private List<String> rolls;
@@ -98,6 +96,7 @@ public class PlayerSheetGUI extends JFrame {
     private List<String> knownLanguages;
     private List<String> chosenLanguages;
     private List<String> allLanguages;
+    private List<JCheckBox> skillCheckBoxes;
 
     private int currentSheet = 0;
     private int abilityIndex;
@@ -109,6 +108,13 @@ public class PlayerSheetGUI extends JFrame {
     private final String UNSELECT = "Unselect";
     private final String REMOVE = "Remove option above";
     private final int NEGATIVE = -1;
+
+    private final int STRENGTH = 0;
+    private final int DEXTERITY = 1;
+    private final int CONSTITUTION = 2;
+    private final int INTELLIGENCE = 3;
+    private final int WISDOM = 4;
+    private final int CHARISMA = 5;
 
     private List<Sheet> sheets = new ArrayList<>();
     private static Sheet sheet;
@@ -140,6 +146,7 @@ public class PlayerSheetGUI extends JFrame {
         setVisible(true);
         lastButton.setEnabled(false);
 
+        createSkillList();
         getNewCharacter();
         getNewCharacterData();
         propagateSheetData();
@@ -147,6 +154,32 @@ public class PlayerSheetGUI extends JFrame {
         propagateRolls();
         addActionListeners();
     }
+
+    private void createSkillList() {
+        skillCheckBoxes = new ArrayList<>();
+        skillCheckBoxes.add(acrobaticsDexCheckBox);
+        skillCheckBoxes.add(animalHandlingWisCheckBox);
+        skillCheckBoxes.add(arcanaIntCheckBox);
+        skillCheckBoxes.add(athleticsStrCheckBox);
+        skillCheckBoxes.add(deceptionChaCheckBox);
+        skillCheckBoxes.add(historyIntCheckBox);
+        skillCheckBoxes.add(insightWisCheckBox);
+        skillCheckBoxes.add(intimidationChaCheckBox);
+        skillCheckBoxes.add(investigationIntCheckBox);
+        skillCheckBoxes.add(medicineWisCheckBox);
+        skillCheckBoxes.add(natureIntCheckBox);
+        skillCheckBoxes.add(perceptionWisCheckBox);
+        skillCheckBoxes.add(performanceChaCheckBox);
+        skillCheckBoxes.add(persuasionChaCheckBox);
+        skillCheckBoxes.add(religionIntCheckBox);
+        skillCheckBoxes.add(sleightOfHandDexCheckBox);
+        skillCheckBoxes.add(stealthDexCheckBox);
+        skillCheckBoxes.add(survivalWisCheckBox);
+    }
+
+    /*******************************************************
+     * The following adds data from database to the sheet. *
+     *******************************************************/
 
     private void getNewCharacter() {
         Random rnd = new Random();
@@ -230,14 +263,15 @@ public class PlayerSheetGUI extends JFrame {
         List<String> armorNames = gear.getArmorNames();
         List<Integer> armorBases = gear.getArmorBases();
         List<String> armorTypes = gear.getArmorTypes();
-        updateArmor(armorNames, armorBases, armorTypes);
+        updateArmor(armorNames);
+        updateArmorClass(armorBases, armorTypes);
         List<String> weaponNames = gear.getWeaponNames();
         List<String> weaponDamages = gear.getWeaponDamages();
         List<Integer> weaponModifiers = gear.getWeaponModifiers();
         updateWeapons(weaponNames, weaponDamages, weaponModifiers);
     }
 
-    private void updateArmor(List<String> names, List<Integer> bases, List<String> types) {
+    private void updateArmor(List<String> names) {
         armorComboBox.setEnabled(true);
         armorComboBox.removeAllItems();
 
@@ -248,30 +282,47 @@ public class PlayerSheetGUI extends JFrame {
         if (names.size() == 0) {
             armorComboBox.setEnabled(false);
         }
+    }
 
+    private void updateArmorClass(List<Integer> bases, List<String> types) {
         int base = 0;
-        for (int i = 0; i < bases.size(); i++) {
-            String type = types.get(i);
-            int dexScore = modifiers.getDexterityScore() + modifiers.getDexterityRaceModifier();
-            int dexMod = Integer.parseInt(getAbilityScoreModifier(dexScore));
+        int dexScore = modifiers.getDexterityScore() + modifiers.getDexterityRaceModifier();
+        int dexMod = Integer.parseInt(getAbilityScoreModifier(dexScore));
 
-            switch (type) {
-                case "Light":
-                    base += bases.get(i);
-                    base += dexMod;
-                    break;
-                case "Medium":
-                    base += bases.get(i);
-                    base += Math.min(dexMod, 2);
-                    break;
-                case "Heavy":
-                case "Shield":
-                    base += bases.get(i);
-                    break;
+        if (character.getClassName().equals("Barbarian")) {
+            int conScore = modifiers.getConstitutionScore() + modifiers.getConstitutionRaceModifier();
+            int conMod = Integer.parseInt(getAbilityScoreModifier(conScore));
+            base = 10 + dexMod + conMod;
+
+            armorClassLabel.setText(String.valueOf(base));
+        } else if (character.getClassName().equals("Monk")) {
+            int wisScore = modifiers.getWisdomScore() + modifiers.getWisdomRaceModifier();
+            int wisMod = Integer.parseInt(getAbilityScoreModifier(wisScore));
+            base = 10 + dexMod + wisMod;
+
+            armorClassLabel.setText(String.valueOf(base));
+        } else {
+            for (int i = 0; i < bases.size(); i++) {
+                String type = types.get(i);
+
+                switch (type) {
+                    case "Light":
+                        base += bases.get(i);
+                        base += dexMod;
+                        break;
+                    case "Medium":
+                        base += bases.get(i);
+                        base += Math.min(dexMod, 2);
+                        break;
+                    case "Heavy":
+                    case "Shield":
+                        base += bases.get(i);
+                        break;
+                }
             }
-        }
 
-        armorClassLabel.setText(String.valueOf(base));
+            armorClassLabel.setText(String.valueOf(base));
+        }
     }
 
     private void updateWeapons(List<String> names, List<String> damages, List<Integer> weaponModifiers) {
@@ -493,6 +544,10 @@ public class PlayerSheetGUI extends JFrame {
         }
     }
 
+    /**********************************************
+     * The following deals with the user's rolls. *
+     **********************************************/
+
     private void startRolls() {
         oldRolls.sort(Integer::compareTo);
         rolls.clear();
@@ -559,41 +614,45 @@ public class PlayerSheetGUI extends JFrame {
         return !selectedRolls.contains(testRoll);
     }
 
+    /*********************************************************
+     * The following updates information via event handlers. *
+     *********************************************************/
+
     private void addActionListeners() {
-        comboBoxActionListeners(0, strengthComboBox);
-        comboBoxActionListeners(1, dexterityComboBox);
-        comboBoxActionListeners(2, constitutionComboBox);
-        comboBoxActionListeners(3, intelligenceComboBox);
-        comboBoxActionListeners(4, wisdomComboBox);
-        comboBoxActionListeners(5, charismaComboBox);
+        comboBoxActionListeners(STRENGTH, strengthComboBox);
+        comboBoxActionListeners(DEXTERITY, dexterityComboBox);
+        comboBoxActionListeners(CONSTITUTION, constitutionComboBox);
+        comboBoxActionListeners(INTELLIGENCE, intelligenceComboBox);
+        comboBoxActionListeners(WISDOM, wisdomComboBox);
+        comboBoxActionListeners(CHARISMA, charismaComboBox);
 
-        saveCheckBoxActionListeners(0, strengthSaveCheckBox);
-        saveCheckBoxActionListeners(1, dexteritySaveCheckBox);
-        saveCheckBoxActionListeners(2, constitutionSaveCheckBox);
-        saveCheckBoxActionListeners(3, intelligenceSaveCheckBox);
-        saveCheckBoxActionListeners(4, wisdomSaveCheckBox);
-        saveCheckBoxActionListeners(5, charismaSaveCheckBox);
+        saveCheckBoxActionListeners(STRENGTH, strengthSaveCheckBox);
+        saveCheckBoxActionListeners(DEXTERITY, dexteritySaveCheckBox);
+        saveCheckBoxActionListeners(CONSTITUTION, constitutionSaveCheckBox);
+        saveCheckBoxActionListeners(INTELLIGENCE, intelligenceSaveCheckBox);
+        saveCheckBoxActionListeners(WISDOM, wisdomSaveCheckBox);
+        saveCheckBoxActionListeners(CHARISMA, charismaSaveCheckBox);
 
-        skillCheckBoxActionListeners(0, athleticsStrCheckBox, athleticsLabel);
-        skillCheckBoxActionListeners(1, acrobaticsDexCheckBox, acrobaticsLabel);
-        skillCheckBoxActionListeners(1, sleightOfHandDexCheckBox, sleightOfHandLabel);
-        skillCheckBoxActionListeners(1, stealthDexCheckBox, stealthLabel);
-        skillCheckBoxActionListeners(3, arcanaIntCheckBox, arcanaLabel);
-        skillCheckBoxActionListeners(3, historyIntCheckBox, historyLabel);
-        skillCheckBoxActionListeners(3, investigationIntCheckBox, investigationLabel);
-        skillCheckBoxActionListeners(3, natureIntCheckBox, natureLabel);
-        skillCheckBoxActionListeners(3, religionIntCheckBox, religionLabel);
-        skillCheckBoxActionListeners(4, animalHandlingWisCheckBox, animalHandlingLabel);
-        skillCheckBoxActionListeners(4, insightWisCheckBox, insightLabel);
-        skillCheckBoxActionListeners(4, medicineWisCheckBox, medicineLabel);
-        skillCheckBoxActionListeners(4, survivalWisCheckBox, survivalLabel);
-        skillCheckBoxActionListeners(5, deceptionChaCheckBox, deceptionLabel);
-        skillCheckBoxActionListeners(5, intimidationChaCheckBox, intimidationLabel);
-        skillCheckBoxActionListeners(5, performanceChaCheckBox, performanceLabel);
-        skillCheckBoxActionListeners(5, persuasionChaCheckBox, persuasionLabel);
+        skillCheckBoxActionListeners(STRENGTH, athleticsStrCheckBox, athleticsLabel);
+        skillCheckBoxActionListeners(DEXTERITY, acrobaticsDexCheckBox, acrobaticsLabel);
+        skillCheckBoxActionListeners(DEXTERITY, sleightOfHandDexCheckBox, sleightOfHandLabel);
+        skillCheckBoxActionListeners(DEXTERITY, stealthDexCheckBox, stealthLabel);
+        skillCheckBoxActionListeners(INTELLIGENCE, arcanaIntCheckBox, arcanaLabel);
+        skillCheckBoxActionListeners(INTELLIGENCE, historyIntCheckBox, historyLabel);
+        skillCheckBoxActionListeners(INTELLIGENCE, investigationIntCheckBox, investigationLabel);
+        skillCheckBoxActionListeners(INTELLIGENCE, natureIntCheckBox, natureLabel);
+        skillCheckBoxActionListeners(INTELLIGENCE, religionIntCheckBox, religionLabel);
+        skillCheckBoxActionListeners(WISDOM, animalHandlingWisCheckBox, animalHandlingLabel);
+        skillCheckBoxActionListeners(WISDOM, insightWisCheckBox, insightLabel);
+        skillCheckBoxActionListeners(WISDOM, medicineWisCheckBox, medicineLabel);
+        skillCheckBoxActionListeners(WISDOM, survivalWisCheckBox, survivalLabel);
+        skillCheckBoxActionListeners(CHARISMA, deceptionChaCheckBox, deceptionLabel);
+        skillCheckBoxActionListeners(CHARISMA, intimidationChaCheckBox, intimidationLabel);
+        skillCheckBoxActionListeners(CHARISMA, performanceChaCheckBox, performanceLabel);
+        skillCheckBoxActionListeners(CHARISMA, persuasionChaCheckBox, persuasionLabel);
 
         perceptionWisCheckBox.addActionListener(event -> {
-            abilityIndex = 4;
+            abilityIndex = WISDOM;
             skillCheckBoxAction(perceptionWisCheckBox, perceptionLabel);
             updatePassive();
         });
@@ -643,6 +702,12 @@ public class PlayerSheetGUI extends JFrame {
                 }
             }
         });
+
+        exportButton.addActionListener(event -> {
+            saveSheet();
+            Export.export(sheet);
+            this.dispose();
+        });
     }
 
     private void comboBoxActionListeners(int index, JComboBox<String> comboBox) {
@@ -669,32 +734,32 @@ public class PlayerSheetGUI extends JFrame {
         String choice = comboBox.getItemAt(comboBox.getSelectedIndex());
         if (choice.equals(UNSELECT)) {
             switch (abilityIndex) {
-                case 0:
+                case STRENGTH:
                     modifiers.setStrengthIndex(NEGATIVE);
                     modifiers.setStrengthScore(0);
                     updateModifierLabel(strengthModifierLabel);
                     break;
-                case 1:
+                case DEXTERITY:
                     modifiers.setDexterityIndex(NEGATIVE);
                     modifiers.setDexterityScore(0);
                     updateModifierLabel(dexterityModifierLabel);
                     break;
-                case 2:
+                case CONSTITUTION:
                     modifiers.setConstitutionIndex(NEGATIVE);
                     modifiers.setConstitutionScore(0);
                     updateModifierLabel(constitutionModifierLabel);
                     break;
-                case 3:
+                case INTELLIGENCE:
                     modifiers.setIntelligenceIndex(NEGATIVE);
                     modifiers.setIntelligenceScore(0);
                     updateModifierLabel(intelligenceModifierLabel);
                     break;
-                case 4:
+                case WISDOM:
                     modifiers.setWisdomIndex(NEGATIVE);
                     modifiers.setWisdomScore(0);
                     updateModifierLabel(wisdomModifierLabel);
                     break;
-                case 5:
+                case CHARISMA:
                     modifiers.setCharismaIndex(NEGATIVE);
                     modifiers.setCharismaScore(0);
                     updateModifierLabel(charismaModifierLabel);
@@ -703,51 +768,57 @@ public class PlayerSheetGUI extends JFrame {
         } else {
             choice = getChoice(comboBox);
             switch (abilityIndex) {
-                case 0:
+                case STRENGTH:
                     modifiers.setStrengthIndex(rolls.indexOf(choice));
                     modifiers.setStrengthScore(getChoiceMod(choice));
                     updateModifierLabel(strengthModifierLabel);
                     break;
-                case 1:
+                case DEXTERITY:
                     modifiers.setDexterityIndex(rolls.indexOf(choice));
                     modifiers.setDexterityScore(getChoiceMod(choice));
                     updateModifierLabel(dexterityModifierLabel);
                     break;
-                case 2:
+                case CONSTITUTION:
                     modifiers.setConstitutionIndex(rolls.indexOf(choice));
                     modifiers.setConstitutionScore(getChoiceMod(choice));
                     updateModifierLabel(constitutionModifierLabel);
                     break;
-                case 3:
+                case INTELLIGENCE:
                     modifiers.setIntelligenceIndex(rolls.indexOf(choice));
                     modifiers.setIntelligenceScore(getChoiceMod(choice));
                     updateModifierLabel(intelligenceModifierLabel);
                     break;
-                case 4:
+                case WISDOM:
                     modifiers.setWisdomIndex(rolls.indexOf(choice));
                     modifiers.setWisdomScore(getChoiceMod(choice));
                     updateModifierLabel(wisdomModifierLabel);
                     break;
-                case 5:
+                case CHARISMA:
                     modifiers.setCharismaIndex(rolls.indexOf(choice));
                     modifiers.setCharismaScore(getChoiceMod(choice));
                     updateModifierLabel(charismaModifierLabel);
                     break;
             }
         }
+
+        List<Integer> bases = gear.getArmorBases();
+        List<String> types = gear.getArmorTypes();
         switch (abilityIndex) {
-            case 0:
+            case STRENGTH:
                 propagateGearData();
                 break;
-            case 1:
+            case DEXTERITY:
                 updateInitiative();
                 propagateGearData();
+                updateArmorClass(bases, types);
                 break;
-            case 2:
+            case CONSTITUTION:
                 propagateHitPoints();
+                updateArmorClass(bases, types);
                 break;
-            case 4:
+            case WISDOM:
                 updatePassive();
+                updateArmorClass(bases, types);
                 break;
         }
     }
@@ -771,22 +842,22 @@ public class PlayerSheetGUI extends JFrame {
     private void updateModifierLabel(JLabel label) {
         int abilityScore = 0;
         switch (abilityIndex) {
-            case 0:
+            case STRENGTH:
                 abilityScore = modifiers.getStrengthScore() + modifiers.getStrengthRaceModifier();
                 break;
-            case 1:
+            case DEXTERITY:
                 abilityScore = modifiers.getDexterityScore() + modifiers.getDexterityRaceModifier();
                 break;
-            case 2:
+            case CONSTITUTION:
                 abilityScore = modifiers.getConstitutionScore() + modifiers.getConstitutionRaceModifier();
                 break;
-            case 3:
+            case INTELLIGENCE:
                 abilityScore = modifiers.getIntelligenceScore() + modifiers.getIntelligenceRaceModifier();
                 break;
-            case 4:
+            case WISDOM:
                 abilityScore = modifiers.getWisdomScore() + modifiers.getWisdomRaceModifier();
                 break;
-            case 5:
+            case CHARISMA:
                 abilityScore = modifiers.getCharismaScore() + modifiers.getCharismaRaceModifier();
                 break;
         }
@@ -871,22 +942,22 @@ public class PlayerSheetGUI extends JFrame {
         for (int i = 0; i < 6; i++) {
             abilityIndex = i;
             switch (abilityIndex) {
-                case 0:
+                case STRENGTH:
                     updateModifierLabel(strengthModifierLabel);
                     break;
-                case 1:
+                case DEXTERITY:
                     updateModifierLabel(dexterityModifierLabel);
                     break;
-                case 2:
+                case CONSTITUTION:
                     updateModifierLabel(constitutionModifierLabel);
                     break;
-                case 3:
+                case INTELLIGENCE:
                     updateModifierLabel(intelligenceModifierLabel);
                     break;
-                case 4:
+                case WISDOM:
                     updateModifierLabel(wisdomModifierLabel);
                     break;
-                case 5:
+                case CHARISMA:
                     updateModifierLabel(charismaModifierLabel);
                     break;
             }
@@ -899,24 +970,9 @@ public class PlayerSheetGUI extends JFrame {
         resetModifier(wisdomSaveCheckBox);
         resetModifier(charismaSaveCheckBox);
 
-        resetModifier(athleticsStrCheckBox);
-        resetModifier(acrobaticsDexCheckBox);
-        resetModifier(sleightOfHandDexCheckBox);
-        resetModifier(stealthDexCheckBox);
-        resetModifier(arcanaIntCheckBox);
-        resetModifier(historyIntCheckBox);
-        resetModifier(investigationIntCheckBox);
-        resetModifier(natureIntCheckBox);
-        resetModifier(religionIntCheckBox);
-        resetModifier(animalHandlingWisCheckBox);
-        resetModifier(insightWisCheckBox);
-        resetModifier(medicineWisCheckBox);
-        resetModifier(perceptionWisCheckBox);
-        resetModifier(survivalWisCheckBox);
-        resetModifier(deceptionChaCheckBox);
-        resetModifier(intimidationChaCheckBox);
-        resetModifier(performanceChaCheckBox);
-        resetModifier(persuasionChaCheckBox);
+        for (JCheckBox checkBox : skillCheckBoxes) {
+            resetModifier(checkBox);
+        }
     }
 
     private void resetModifier(JCheckBox checkbox) {
@@ -948,28 +1004,7 @@ public class PlayerSheetGUI extends JFrame {
 
     private void saveCheckBoxAction(JCheckBox saveCheckBox) {
         if (passGo) {
-            int modifier = 0;
-            switch(abilityIndex) {
-                case 0:
-                    modifier = modifiers.getStrengthScore() + modifiers.getStrengthRaceModifier();
-                    break;
-                case 1:
-                    modifier = modifiers.getDexterityScore() + modifiers.getDexterityRaceModifier();
-                    break;
-                case 2:
-                    modifier = modifiers.getConstitutionScore() + modifiers.getConstitutionRaceModifier();
-                    break;
-                case 3:
-                    modifier = modifiers.getIntelligenceScore() + modifiers.getIntelligenceRaceModifier();
-                    break;
-                case 4:
-                    modifier = modifiers.getWisdomScore() + modifiers.getWisdomRaceModifier();
-                    break;
-                case 5:
-                    modifier = modifiers.getCharismaScore() + modifiers.getCharismaRaceModifier();
-                    break;
-            }
-            int abilityScoreModifier = Integer.parseInt(getAbilityScoreModifier(modifier));
+            int abilityScoreModifier = getModifier();
 
             if (saveCheckBox.isSelected()) {
                 abilityScoreModifier += PROFICIENCY_MODIFIER;
@@ -988,6 +1023,32 @@ public class PlayerSheetGUI extends JFrame {
         }
     }
 
+    private int getModifier() {
+        int modifier = 0;
+        switch(abilityIndex) {
+            case STRENGTH:
+                modifier = modifiers.getStrengthScore() + modifiers.getStrengthRaceModifier();
+                break;
+            case DEXTERITY:
+                modifier = modifiers.getDexterityScore() + modifiers.getDexterityRaceModifier();
+                break;
+            case CONSTITUTION:
+                modifier = modifiers.getConstitutionScore() + modifiers.getConstitutionRaceModifier();
+                break;
+            case INTELLIGENCE:
+                modifier = modifiers.getIntelligenceScore() + modifiers.getIntelligenceRaceModifier();
+                break;
+            case WISDOM:
+                modifier = modifiers.getWisdomScore() + modifiers.getWisdomRaceModifier();
+                break;
+            case CHARISMA:
+                modifier = modifiers.getCharismaScore() + modifiers.getCharismaRaceModifier();
+                break;
+        }
+
+        return Integer.parseInt(getAbilityScoreModifier(modifier));
+    }
+
     private void skillCheckBoxActionListeners(int modifierIndex, JCheckBox checkBox, JLabel skillLabel) {
         checkBox.addActionListener(event -> {
             abilityIndex = modifierIndex;
@@ -995,30 +1056,10 @@ public class PlayerSheetGUI extends JFrame {
         });
     }
 
+    //TODO check duplicate
     private void skillCheckBoxAction(JCheckBox checkBox, JLabel label) {
         if (passGo) {
-            int modifier = 0;
-            switch(abilityIndex) {
-                case 0:
-                    modifier = modifiers.getStrengthScore() + modifiers.getStrengthRaceModifier();
-                    break;
-                case 1:
-                    modifier = modifiers.getDexterityScore() + modifiers.getDexterityRaceModifier();
-                    break;
-                case 2:
-                    modifier = modifiers.getConstitutionScore() + modifiers.getConstitutionRaceModifier();
-                    break;
-                case 3:
-                    modifier = modifiers.getIntelligenceScore() + modifiers.getIntelligenceRaceModifier();
-                    break;
-                case 4:
-                    modifier = modifiers.getWisdomScore() + modifiers.getWisdomRaceModifier();
-                    break;
-                case 5:
-                    modifier = modifiers.getCharismaScore() + modifiers.getCharismaRaceModifier();
-                    break;
-            }
-            int abilityScoreModifier = Integer.parseInt(getAbilityScoreModifier(modifier));
+            int abilityScoreModifier = getModifier();
 
             if (checkBox.isSelected()) {
                 abilityScoreModifier += PROFICIENCY_MODIFIER;
@@ -1026,10 +1067,63 @@ public class PlayerSheetGUI extends JFrame {
             } else {
                 setLabel(abilityScoreModifier, label);
             }
-            getSkillsSelected();
-            proficienciesLeftLabel.setText("Proficiencies Left: " + (skillStates.getChoices() - selectedSkills));
+
+            processChoices();
         }
     }
+
+    private void processChoices() {
+        getSkillsSelected();
+        int skillsLeft = skillStates.getChoices() - selectedSkills;
+        proficienciesLeftLabel.setText("Proficiencies Left: " + skillsLeft);
+
+        if (skillsLeft == 0) {
+            JOptionPane.showMessageDialog(this, "You have chosen all skill proficiencies" +
+                    " available to you.");
+        } else if (skillsLeft < 0) {
+            JOptionPane.showMessageDialog(this, "You have exceed the maximum number of " +
+                    "proficiencies available to you. Please deselect " + (0 - skillsLeft) + " before " +
+                    "continuing.");
+        }
+//            if (skillsLeft == 0) {
+//                closeSkills();
+//            } else {
+//                openSkills();
+//            }
+    }
+
+//    private void closeSkills() {
+//        saveSkills();
+//        disableSkill(acrobaticsDexCheckBox);
+//        disableSkill(animalHandlingWisCheckBox);
+//        disableSkill(arcanaIntCheckBox);
+//        disableSkill(athleticsStrCheckBox);
+//        disableSkill(deceptionChaCheckBox);
+//        disableSkill(historyIntCheckBox);
+//        disableSkill(insightWisCheckBox);
+//        disableSkill(intimidationChaCheckBox);
+//        disableSkill(investigationIntCheckBox);
+//        disableSkill(medicineWisCheckBox);
+//        disableSkill(natureIntCheckBox);
+//        disableSkill(perceptionWisCheckBox);
+//        disableSkill(performanceChaCheckBox);
+//        disableSkill(persuasionChaCheckBox);
+//        disableSkill(religionIntCheckBox);
+//        disableSkill(sleightOfHandDexCheckBox);
+//        disableSkill(stealthDexCheckBox);
+//        disableSkill(survivalWisCheckBox);
+//    }
+//
+//    private void disableSkill(JCheckBox checkBox) {
+//        if (!checkBox.isSelected()) {
+//            checkBox.setEnabled(false);
+//        }
+//    }
+//
+//    private void openSkills() {
+//        saveSkills();
+//        propagateSkillData();
+//    }
 
     private void setLabel(int mod, JLabel label) {
         if (mod > 0) {
@@ -1041,24 +1135,10 @@ public class PlayerSheetGUI extends JFrame {
 
     private void getSkillsSelected() {
         selectedSkills = 0;
-        skillSelected(acrobaticsDexCheckBox);
-        skillSelected(animalHandlingWisCheckBox);
-        skillSelected(arcanaIntCheckBox);
-        skillSelected(athleticsStrCheckBox);
-        skillSelected(deceptionChaCheckBox);
-        skillSelected(historyIntCheckBox);
-        skillSelected(insightWisCheckBox);
-        skillSelected(intimidationChaCheckBox);
-        skillSelected(investigationIntCheckBox);
-        skillSelected(medicineWisCheckBox);
-        skillSelected(natureIntCheckBox);
-        skillSelected(perceptionWisCheckBox);
-        skillSelected(performanceChaCheckBox);
-        skillSelected(persuasionChaCheckBox);
-        skillSelected(religionIntCheckBox);
-        skillSelected(sleightOfHandDexCheckBox);
-        skillSelected(stealthDexCheckBox);
-        skillSelected(survivalWisCheckBox);
+
+        for (JCheckBox checkBox : skillCheckBoxes) {
+            skillSelected(checkBox);
+        }
     }
 
     private void skillSelected(JCheckBox checkBox) {
@@ -1066,6 +1146,10 @@ public class PlayerSheetGUI extends JFrame {
             selectedSkills++;
         }
     }
+
+    /*****************************************************
+     * The following deals with movement to a new sheet. *
+     *****************************************************/
 
     private void setSheet() {
         passGo = false;
@@ -1144,24 +1228,9 @@ public class PlayerSheetGUI extends JFrame {
     }
 
     private void clearSheet() {
-        athleticsStrCheckBox.setSelected(false);
-        acrobaticsDexCheckBox.setSelected(false);
-        sleightOfHandDexCheckBox.setSelected(false);
-        stealthDexCheckBox.setSelected(false);
-        arcanaIntCheckBox.setSelected(false);
-        historyIntCheckBox.setSelected(false);
-        investigationIntCheckBox.setSelected(false);
-        natureIntCheckBox.setSelected(false);
-        religionIntCheckBox.setSelected(false);
-        animalHandlingWisCheckBox.setSelected(false);
-        insightWisCheckBox.setSelected(false);
-        medicineWisCheckBox.setSelected(false);
-        perceptionWisCheckBox.setSelected(false);
-        survivalWisCheckBox.setSelected(false);
-        deceptionChaCheckBox.setSelected(false);
-        intimidationChaCheckBox.setSelected(false);
-        performanceChaCheckBox.setSelected(false);
-        persuasionChaCheckBox.setSelected(false);
+        for (JCheckBox checkBox : skillCheckBoxes) {
+            checkBox.setSelected(false);
+        }
 
         strengthSaveCheckBox.setSelected(false);
         dexteritySaveCheckBox.setSelected(false);

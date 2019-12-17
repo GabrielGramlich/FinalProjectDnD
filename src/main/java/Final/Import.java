@@ -7,17 +7,23 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/************************************************************
+ * This class handles getting information from the database *
+ ************************************************************/
+
 public class Import {
     private static int iRace;
     private static int iClass;
     private static int iBackground;
+
+    // URL, USER and PASSWORD are kept out of local variables, as the .sql files include in GitHub create this
+    //  specific user.
     private static final String URL = "jdbc:mysql://localhost:3306/FinalProjectDB?useUnicode=true&useJDBCCompliant" +
             "TimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&useSSL=false";
     private static final String USER = "Final";
     private static final String PASSWORD = "koolerthanjesuswasagoodsong";
 
-    public static void main(String[] args) { }
-
+    // This method calls all methods to get full character data.
     public static Sheet getCharacterData(int raceSelection, int classSelection, int backgroundSelection) {
         iRace = raceSelection;
         iClass = classSelection;
@@ -34,6 +40,11 @@ public class Import {
 
         return new Sheet(character, feats, gear, languages, saves, skillStates, modifiers, tools);
     }
+
+    /*********************************************************************************
+     * Following methods send sequel statements to methods that make database calls, *
+     * then returns objects associated with the data *********************************
+     *********************************************************************************/
 
     private static Character getCharacter() {
         String raceName = getString("SELECT * FROM Races WHERE RaceID = " + iRace, "Name");
@@ -106,6 +117,11 @@ public class Import {
 
         return new Tools(backgroundProficiencies, raceProficiencies);
     }
+
+    /***************************************************************************
+     * The following methods make the actual calls to the database and returns *
+     * the data in different variable types, depending on the method called ****
+     ***************************************************************************/
 
     private static String getString(String sqlStatement, String column) {
         String result = "";

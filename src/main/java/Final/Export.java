@@ -3,19 +3,26 @@ package Final;
 import Final.Objects.*;
 import Final.Objects.Character;
 
-import javax.swing.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+
+/**************************************************************
+ * This class is only temporary. It will eventually allow the *
+ * user to export to a Wizards of the Coast Player Sheer PDF, *
+ * but -- for now -- simply prints to a .txt file. ************
+ **************************************************************
+ * It is also, at this time, incomplete in that respect. I'll *
+ * update it after I finish commenting, but don't expect that *
+ * work to be included in the grading off the project. ********
+ **************************************************************/
 
 class Export {
     static void export(Sheet sheet) {
         NameGUI nameGUI = new NameGUI(sheet);
     }
 
-    static void nextStep(Sheet sheet) {
-        String name = Main.getName();
-
+    static void nextStep(Sheet sheet, String name) {
         getFileData(sheet, name);
     }
 
@@ -23,6 +30,7 @@ class Export {
         String filename = name + "'s Character'.txt";
         String file = name + "'s Character:\n";
 
+        // Grabbing all character data objects.
         Character character = sheet.getCharacter();
         Modifiers modifiers = sheet.getModifiers();
         Saves saves = sheet.getSaves();
@@ -32,6 +40,7 @@ class Export {
         Gear gear = sheet.getGear();
         Tools tools = sheet.getTools();
 
+        // Sending character data objects to methods to extract data and add it to the string to be put in file.
         file = getCharacterData(file, character);
         file = getFeatData(file, feats);
         file = getGearData(file, gear);

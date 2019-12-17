@@ -2,6 +2,10 @@ package Final.Objects;
 
 import java.util.List;
 
+/********************************************************
+ * This object stores the character's saving throw data *
+ ********************************************************/
+
 public class Saves {
     private boolean strengthSave = false;
     private boolean dexteritySave = false;
@@ -11,6 +15,7 @@ public class Saves {
     private boolean charismaSave = false;
 
     public Saves(List<String> classSaves) {
+        // Looping through each save, and adding selection to its associated ability.
         for (String save : classSaves) {
             switch (save) {
                 case "Strength":

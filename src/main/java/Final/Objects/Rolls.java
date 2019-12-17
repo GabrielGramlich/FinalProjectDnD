@@ -1,5 +1,9 @@
 package Final.Objects;
 
+/***************************************
+ * This object stores the user's rolls *
+ ***************************************/
+
 public class Rolls {
     private int first;
     private int second;

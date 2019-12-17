@@ -1,5 +1,9 @@
 package Final.Objects;
 
+/***********************************************
+ * This object stores the basic character data *
+ ***********************************************/
+
 public class Character {
     private String raceName;
     private String className;

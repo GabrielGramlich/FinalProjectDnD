@@ -28,21 +28,41 @@ public class NameGUI extends JFrame {
         okayButton.addActionListener(event -> {
             String name = nameTextField.getText();
             if (validateName(name)) {
-                Main.setName(name);
-                Export.nextStep(sheet);
+                // Jumps back to export with the user's name.
+                Export.nextStep(sheet, name);
                 this.dispose();
             } else {
+                // Tells the user to stop being dumb, and then makes them.
                 JOptionPane.showMessageDialog(this, "Please enter a valid name.");
+                nameTextField.setText("");
             }
         });
     }
 
     private static boolean validateName(String name) {
-        // TODO add more validation for the name
-        if (name != null) {
-            return name.length() != 0;
+        // Checks to make sure there's something entered, and that it's good. Validation, I think it's called.
+        if (name == null || name.length() == 0) {
+            return false;
+        } else if (hasBadCharacters(name)){
+            return false;
         } else {
             return true;
         }
     }
+
+    private static boolean hasBadCharacters(String name) {
+        String[] badCharacters = {"#", "%", "&", "{", "}", "\\", "/", "<", ">", "*", "?", " ", "$", "!", "\'", "\"", ":", "@", "+", "`", "|", "="};
+        boolean bad = false;
+
+        // Checks if input contains a character that'll fork with a filename.
+        for (String character : badCharacters) {
+            if (name.contains(character)) {
+                bad = true;
+            }
+        }
+
+        return bad;
+    }
+
+
 }

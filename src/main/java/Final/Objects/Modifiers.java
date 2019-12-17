@@ -2,6 +2,13 @@ package Final.Objects;
 
 import java.util.List;
 
+/**********************************************************
+ * This object stores the character's ability score data **
+ * Index is of combo box selection ************************
+ * Score is the roll selected for the ability *************
+ * Race modifier is a potential bonus from generated race *
+ **********************************************************/
+
 public class Modifiers {
     private int strengthIndex = -1;
     private int strengthScore = 0;
@@ -23,6 +30,7 @@ public class Modifiers {
     private int charismaRaceModifier = 0;
 
     public Modifiers(List<String> raceAbilities, List<Integer> raceModifiers) {
+        // Looping through the list and adding the modifier to it's associated ability.
         for (int i = 0; i < raceAbilities.size(); i++) {
             String ability = raceAbilities.get(i);
             int modifier = raceModifiers.get(i);

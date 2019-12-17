@@ -2,6 +2,10 @@ package Final.Objects;
 
 import java.util.List;
 
+/****************************************************
+ * This object stores the character's language data *
+ ****************************************************/
+
 public class Languages {
     private List<String> backgroundLanguages;
     private List<String> raceLanguages;
@@ -14,6 +18,7 @@ public class Languages {
         this.raceLanguages = raceLanguages;
         this.allLanguages = allLanguages;
 
+        // Database stores choosable language as "Any" so these compile total user can pick.
         for (String language : backgroundLanguages) {
             if (language.equals("Any")) {
                 languagesLeft++;

@@ -1,5 +1,9 @@
 package Final.Objects;
 
+/*********************************************************************
+ * This object stores the which skill the character is proficient in *
+ *********************************************************************/
+
 public class SkillSelections {
     private boolean acrobatics = false;
     private boolean animalHandling = false;

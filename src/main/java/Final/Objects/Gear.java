@@ -2,6 +2,10 @@ package Final.Objects;
 
 import java.util.List;
 
+/************************************************************
+ * This object stores the character's weapon and armor data *
+ ************************************************************/
+
 public class Gear {
     private List<String> armorNames;
     private List<Integer> armorBases;

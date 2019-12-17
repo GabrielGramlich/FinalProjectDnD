@@ -3,6 +3,10 @@ package Final.Objects;
 import java.util.ArrayList;
 import java.util.List;
 
+/*********************************************************
+ * This object stores the character's tool proficiencies *
+ *********************************************************/
+
 public class Tools {
     private List<String> toolProficiencies = new ArrayList<>();
 

@@ -1,12 +1,12 @@
 package Final;
 
-public class Main {
-    private static String name;
+/**********************************************
+ * This class calls the first gui. That's it. *
+ **********************************************/
 
+public class Main {
+    //Calls the first GUI. That's it.
     public static void main(String[] args) {
         RollGUI rollGUI = new RollGUI();
     }
-
-    static void setName(String entry) { name = entry; }
-    static String getName() { return name; }
 }

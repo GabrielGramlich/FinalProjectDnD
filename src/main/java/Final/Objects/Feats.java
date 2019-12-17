@@ -2,6 +2,10 @@ package Final.Objects;
 
 import java.util.List;
 
+/*******************************************************
+ * This object stores the feature data for a character *
+ *******************************************************/
+
 public class Feats {
     private List<String> backgroundFeatNames;
     private List<String> backgroundFeatDescriptions;

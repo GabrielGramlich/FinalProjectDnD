@@ -1,5 +1,9 @@
 package Final.Objects;
 
+/********************************************************************
+ * This object stores the other objects representing character data *
+ ********************************************************************/
+
 public class Sheet {
     private Character character;
     private Feats feats;

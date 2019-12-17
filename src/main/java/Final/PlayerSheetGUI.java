@@ -103,6 +103,7 @@ public class PlayerSheetGUI extends JFrame {
     private int selectedSkills = 0;
     private boolean listenGo = true;
     private boolean passGo = true;
+    private boolean modGo = true;
 
     private final int PROFICIENCY_MODIFIER = 2;
     private final String UNSELECT = "Unselect";
@@ -137,6 +138,7 @@ public class PlayerSheetGUI extends JFrame {
     PlayerSheetGUI(List<Integer> oldRolls) {
         rolls = new ArrayList<>();
         this.oldRolls = oldRolls;
+
         this.setContentPane(mainPanel);
         setTitle("Player Sheet Generator");
         pack();
@@ -978,6 +980,7 @@ public class PlayerSheetGUI extends JFrame {
     private void resetModifier(JCheckBox checkbox) {
         boolean go = true;
 
+        modGo = false;
         setCursor(WAIT_CURSOR);
         checkbox.setVisible(false);
         if (checkbox.isEnabled()) {
@@ -993,6 +996,7 @@ public class PlayerSheetGUI extends JFrame {
         }
         checkbox.setVisible(true);
         setCursor(DEFAULT_CURSOR);
+        modGo = true;
     }
 
     private void saveCheckBoxActionListeners(int index, JCheckBox checkBox) {
@@ -1056,7 +1060,6 @@ public class PlayerSheetGUI extends JFrame {
         });
     }
 
-    //TODO check duplicate
     private void skillCheckBoxAction(JCheckBox checkBox, JLabel label) {
         if (passGo) {
             int abilityScoreModifier = getModifier();
@@ -1077,13 +1080,15 @@ public class PlayerSheetGUI extends JFrame {
         int skillsLeft = skillStates.getChoices() - selectedSkills;
         proficienciesLeftLabel.setText("Proficiencies Left: " + skillsLeft);
 
-        if (skillsLeft == 0) {
-            JOptionPane.showMessageDialog(this, "You have chosen all skill proficiencies" +
-                    " available to you.");
-        } else if (skillsLeft < 0) {
-            JOptionPane.showMessageDialog(this, "You have exceed the maximum number of " +
-                    "proficiencies available to you. Please deselect " + (0 - skillsLeft) + " before " +
-                    "continuing.");
+        if (modGo) {
+            if (skillsLeft == 0) {
+                JOptionPane.showMessageDialog(this, "You have chosen all skill proficiencies" +
+                        " available to you.");
+            } else if (skillsLeft < 0) {
+                JOptionPane.showMessageDialog(this, "You have exceed the maximum number of " +
+                        "proficiencies available to you. Please deselect " + (0 - skillsLeft) + " before " +
+                        "continuing.");
+            }
         }
 //            if (skillsLeft == 0) {
 //                closeSkills();

@@ -4,6 +4,13 @@ import Final.PlayerSheetGUI.State;
 
 import java.util.List;
 
+/***************************************************************************
+ * This object stores the user's selection of the skill as an enum *********
+ * FINAL is chosen by background or race, and cannot be changed ************
+ * OPEN is available for the user to choose from class, race or background *
+ * CLOSED is unavailable to the user ***************************************
+ ***************************************************************************/
+
 public class SkillStates {
     private State acrobatics = State.CLOSED;
     private State animalHandling = State.CLOSED;
@@ -36,15 +43,18 @@ public class SkillStates {
     }
 
     private void setStates(List<Boolean> choices, List<String> proficiencies) {
+        // Loops through the proficiencies available to the user and assigns them to their appropriate skill.
         for (int i = 0; i < proficiencies.size(); i++) {
             String proficiency = proficiencies.get(i);
             boolean choice = choices.get(i);
             switch (proficiency) {
                 case "Acrobatics":
+                    // Choice is if it available from class, or assigned through some means.
                     if (choice) {
                         acrobatics = State.OPEN;
                     } else {
                         acrobatics = State.FINAL;
+                        // Updating choice in skill selections object, as it is always chosen.
                         skillSelections.setAcrobatics(true);
                     }
                     break;

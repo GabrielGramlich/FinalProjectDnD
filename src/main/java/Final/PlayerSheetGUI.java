@@ -1141,39 +1141,6 @@ public class PlayerSheetGUI extends JFrame {
 //            }
     }
 
-//    private void closeSkills() {
-//        saveSkills();
-//        disableSkill(acrobaticsDexCheckBox);
-//        disableSkill(animalHandlingWisCheckBox);
-//        disableSkill(arcanaIntCheckBox);
-//        disableSkill(athleticsStrCheckBox);
-//        disableSkill(deceptionChaCheckBox);
-//        disableSkill(historyIntCheckBox);
-//        disableSkill(insightWisCheckBox);
-//        disableSkill(intimidationChaCheckBox);
-//        disableSkill(investigationIntCheckBox);
-//        disableSkill(medicineWisCheckBox);
-//        disableSkill(natureIntCheckBox);
-//        disableSkill(perceptionWisCheckBox);
-//        disableSkill(performanceChaCheckBox);
-//        disableSkill(persuasionChaCheckBox);
-//        disableSkill(religionIntCheckBox);
-//        disableSkill(sleightOfHandDexCheckBox);
-//        disableSkill(stealthDexCheckBox);
-//        disableSkill(survivalWisCheckBox);
-//    }
-//
-//    private void disableSkill(JCheckBox checkBox) {
-//        if (!checkBox.isSelected()) {
-//            checkBox.setEnabled(false);
-//        }
-//    }
-//
-//    private void openSkills() {
-//        saveSkills();
-//        propagateSkillData();
-//    }
-
     private void setLabel(int mod, JLabel label) {
         if (mod > 0) {
             label.setText("+" + mod);

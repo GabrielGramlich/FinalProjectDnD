@@ -1022,6 +1022,11 @@ public class PlayerSheetGUI extends JFrame {
     }
 
     private void resetModifier(JCheckBox checkbox) {
+        // Commenting on this one is necessary though. Basically, some checkboxes were available for the user to select
+        //  some weren't. I wanted to keep those the same while updating their values. I can explain this better when
+        //  I'm sober, but whatever. It works. Also, the doClick() is used because apparently setting them as selected
+        //  doesnt mean anything to java, which is weird, so you actually have to click them, but that means you have
+        //  to show all those clicks, which is why they're set to invisible. Anyways... yeah.
         boolean go = true;
 
         modGo = false;
